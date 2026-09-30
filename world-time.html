@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>World Time</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f1ec;--fg:#1b2333;--mut:#667085;--card:#fff;--line:#d9d5cb;--acc:#2f5bea;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1420;--fg:#eef1f7;--mut:#93a0b8;--card:#172033;--line:#2a3550;--acc:#7c9cff}}
+:root[data-theme="dark"]{--bg:#0e1420;--fg:#eef1f7;--mut:#93a0b8;--card:#172033;--line:#2a3550;--acc:#7c9cff}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh}
+main{max-width:760px;margin:0 auto;padding:28px 18px 60px}
+h1{font-size:1.1rem;font-weight:700;margin:0 0 18px;letter-spacing:.01em}
+.bar{display:flex;gap:10px;position:relative}
+.sw{position:relative;flex:1}
+input{width:100%;font:inherit;font-size:1.1rem;padding:14px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--fg)}
+input:focus,button:focus-visible,li:focus-visible{outline:3px solid var(--acc);outline-offset:1px}
+button{font:inherit;padding:0 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer}
+ul{list-style:none;margin:6px 0 0;padding:4px;position:absolute;left:0;right:0;z-index:5;background:var(--card);border:1.5px solid var(--line);border-radius:12px;max-height:280px;overflow:auto}
+ul:empty{display:none}
+li{padding:10px 12px;border-radius:8px;cursor:pointer}
+li.on,li:hover{background:var(--acc);color:#fff}
+.msg{color:var(--mut);margin:10px 2px;min-height:1.4em}
+.card{border-radius:20px;padding:26px 24px;margin-top:16px;color:#fff;position:relative;overflow:hidden;transition:background .6s}
+.card.day{background:linear-gradient(160deg,#3b7bf0,#79b8ff)}
+.card.dusk{background:linear-gradient(160deg,#8a4fc7,#f0866a)}
+.card.night{background:linear-gradient(160deg,#0b1130,#2b3a7a)}
+.name{font-size:1.05rem;opacity:.92}
+.time{font-size:clamp(3rem,13vw,5.6rem);font-weight:700;line-height:1.05;font-variant-numeric:tabular-nums;letter-spacing:-.02em;margin:6px 0}
+.time small{font-size:.35em;font-weight:400;margin-left:8px;letter-spacing:0}
+.meta{display:flex;flex-wrap:wrap;gap:6px 18px;opacity:.92;font-size:.95rem}
+</style>
+</head>
+<body>
+<main>
+<h1>World time</h1>
+<div class="bar">
+  <div class="sw">
+    <input id="q" type="search" placeholder="Type a country, e.g. Japan" autocomplete="off" aria-label="Search country" role="combobox" aria-expanded="false" aria-controls="list">
+    <ul id="list" role="listbox"></ul>
+  </div>
+  <button id="fmt" type="button" aria-label="Toggle 12 or 24 hour clock">24h</button>
+</div>
+<div class="msg" id="msg" aria-live="polite"></div>
+<div id="out"></div>
+</main>
+<script>
+const Z=`AF=Asia/Kabul AL=Europe/Tirane DZ=Africa/Algiers AD=Europe/Andorra AO=Africa/Luanda AG=America/Antigua AR=America/Argentina/Buenos_Aires AM=Asia/Yerevan AU=Australia/Sydney,Australia/Brisbane,Australia/Adelaide,Australia/Darwin,Australia/Perth AT=Europe/Vienna AZ=Asia/Baku BS=America/Nassau BH=Asia/Bahrain BD=Asia/Dhaka BB=America/Barbados BY=Europe/Minsk BE=Europe/Brussels BZ=America/Belize BJ=Africa/Porto-Novo BT=Asia/Thimphu BO=America/La_Paz BA=Europe/Sarajevo BW=Africa/Gaborone BR=America/Sao_Paulo,America/Manaus,America/Fortaleza,America/Rio_Branco BN=Asia/Brunei BG=Europe/Sofia BF=Africa/Ouagadougou BI=Africa/Bujumbura KH=Asia/Phnom_Penh CM=Africa/Douala CA=America/Toronto,America/Vancouver,America/Edmonton,America/Winnipeg,America/Halifax,America/St_Johns CV=Atlantic/Cape_Verde CF=Africa/Bangui TD=Africa/Ndjamena CL=America/Santiago CN=Asia/Shanghai CO=America/Bogota KM=Indian/Comoro CG=Africa/Brazzaville CD=Africa/Kinshasa,Africa/Lubumbashi CR=America/Costa_Rica CI=Africa/Abidjan HR=Europe/Zagreb CU=America/Havana CY=Asia/Nicosia CZ=Europe/Prague DK=Europe/Copenhagen DJ=Africa/Djibouti DM=America/Dominica DO=America/Santo_Domingo EC=America/Guayaquil EG=Africa/Cairo SV=America/El_Salvador GQ=Africa/Malabo ER=Africa/Asmara EE=Europe/Tallinn SZ=Africa/Mbabane ET=Africa/Addis_Ababa FJ=Pacific/Fiji FI=Europe/Helsinki FR=Europe/Paris GA=Africa/Libreville GM=Africa/Banjul GE=Asia/Tbilisi DE=Europe/Berlin GH=Africa/Accra GR=Europe/Athens GD=America/Grenada GT=America/Guatemala GN=Africa/Conakry GW=Africa/Bissau GY=America/Guyana HT=America/Port-au-Prince HN=America/Tegucigalpa HK=Asia/Hong_Kong HU=Europe/Budapest IS=Atlantic/Reykjavik IN=Asia/Kolkata ID=Asia/Jakarta,Asia/Makassar,Asia/Jayapura IR=Asia/Tehran IQ=Asia/Baghdad IE=Europe/Dublin IL=Asia/Jerusalem IT=Europe/Rome JM=America/Jamaica JP=Asia/Tokyo JO=Asia/Amman KZ=Asia/Almaty,Asia/Aqtobe KE=Africa/Nairobi KI=Pacific/Tarawa KP=Asia/Pyongyang KR=Asia/Seoul XK=Europe/Belgrade KW=Asia/Kuwait KG=Asia/Bishkek LA=Asia/Vientiane LV=Europe/Riga LB=Asia/Beirut LS=Africa/Maseru LR=Africa/Monrovia LY=Africa/Tripoli LI=Europe/Vaduz LT=Europe/Vilnius LU=Europe/Luxembourg MO=Asia/Macau MG=Indian/Antananarivo MW=Africa/Blantyre MY=Asia/Kuala_Lumpur MV=Indian/Maldives ML=Africa/Bamako MT=Europe/Malta MH=Pacific/Majuro MR=Africa/Nouakchott MU=Indian/Mauritius MX=America/Mexico_City,America/Tijuana,America/Cancun FM=Pacific/Pohnpei MD=Europe/Chisinau MC=Europe/Monaco MN=Asia/Ulaanbaatar ME=Europe/Podgorica MA=Africa/Casablanca MZ=Africa/Maputo MM=Asia/Yangon NA=Africa/Windhoek NR=Pacific/Nauru NP=Asia/Kathmandu NL=Europe/Amsterdam NZ=Pacific/Auckland NI=America/Managua NE=Africa/Niamey NG=Africa/Lagos MK=Europe/Skopje NO=Europe/Oslo OM=Asia/Muscat PK=Asia/Karachi PW=Pacific/Palau PS=Asia/Gaza PA=America/Panama PG=Pacific/Port_Moresby PY=America/Asuncion PE=America/Lima PH=Asia/Manila PL=Europe/Warsaw PT=Europe/Lisbon,Atlantic/Azores PR=America/Puerto_Rico QA=Asia/Qatar RO=Europe/Bucharest RU=Europe/Moscow,Asia/Yekaterinburg,Asia/Novosibirsk,Asia/Vladivostok,Asia/Kamchatka RW=Africa/Kigali KN=America/St_Kitts LC=America/St_Lucia VC=America/St_Vincent WS=Pacific/Apia SM=Europe/San_Marino ST=Africa/Sao_Tome SA=Asia/Riyadh SN=Africa/Dakar RS=Europe/Belgrade SC=Indian/Mahe SL=Africa/Freetown SG=Asia/Singapore SK=Europe/Bratislava SI=Europe/Ljubljana SB=Pacific/Guadalcanal SO=Africa/Mogadishu ZA=Africa/Johannesburg SS=Africa/Juba ES=Europe/Madrid,Atlantic/Canary LK=Asia/Colombo SD=Africa/Khartoum SR=America/Paramaribo SE=Europe/Stockholm CH=Europe/Zurich SY=Asia/Damascus TW=Asia/Taipei TJ=Asia/Dushanbe TZ=Africa/Dar_es_Salaam TH=Asia/Bangkok TL=Asia/Dili TG=Africa/Lome TO=Pacific/Tongatapu TT=America/Port_of_Spain TN=Africa/Tunis TR=Europe/Istanbul TM=Asia/Ashgabat TV=Pacific/Funafuti UG=Africa/Kampala UA=Europe/Kyiv AE=Asia/Dubai GB=Europe/London US=America/New_York,America/Chicago,America/Denver,America/Los_Angeles,America/Anchorage,Pacific/Honolulu UY=America/Montevideo UZ=Asia/Tashkent VU=Pacific/Efate VA=Europe/Vatican VE=America/Caracas VN=Asia/Ho_Chi_Minh YE=Asia/Aden ZM=Africa/Lusaka ZW=Africa/Harare`;
+const ALIAS={GB:"UK Britain England Scotland Wales",US:"USA America",AE:"UAE Emirates",CI:"Ivory Coast",CZ:"Czech Republic",MM:"Burma",KR:"South Korea",KP:"North Korea",SZ:"Swaziland",MK:"Macedonia",NL:"Holland",TR:"Turkey",CD:"DRC Congo",CG:"Congo"};
+let dn;try{dn=new Intl.DisplayNames(["en"],{type:"region"})}catch(e){}
+const C=Z.split(" ").map(s=>{const[c,z]=s.split("=");let n=c;try{n=dn.of(c)}catch(e){}if(c==="XK")n="Kosovo";
+return{c,n,z:z.split(","),k:(n+" "+(ALIAS[c]||"")).toLowerCase()}}).sort((a,b)=>a.n.localeCompare(b.n));
+const q=document.getElementById("q"),list=document.getElementById("list"),out=document.getElementById("out"),msg=document.getElementById("msg"),fmt=document.getElementById("fmt");
+let h24=false,shown=[],idx=-1;
+try{h24=localStorage.getItem("h24")==="1"}catch(e){}
+fmt.textContent=h24?"12h":"24h";
+const local=Intl.DateTimeFormat().resolvedOptions().timeZone;
+function label(z){return z.split("/").pop().replace(/_/g," ")}
+function parts(z,d){const f=new Intl.DateTimeFormat("en-US",{timeZone:z,hour:"numeric",minute:"2-digit",second:"2-digit",hour12:!h24,hourCycle:h24?"h23":"h12",weekday:"long",month:"long",day:"numeric",year:"numeric",timeZoneName:"longOffset"});
+const o={};f.formatToParts(d).forEach(p=>o[p.type]=p.value);return o}
+function hour24(z,d){return +new Intl.DateTimeFormat("en-US",{timeZone:z,hour:"numeric",hourCycle:"h23"}).format(d)}
+function render(){
+ const d=new Date();
+ out.innerHTML=shown.map((s,i)=>{const p=parts(s.z,d),hr=hour24(s.z,d);
+  const cls=hr>=8&&hr<17?"day":(hr>=17&&hr<20)||(hr>=5&&hr<8)?"dusk":"night";
+  const t=h24?`${p.hour}:${p.minute}:${p.second}`:`${p.hour}:${p.minute}:${p.second}<small>${p.dayPeriod||""}</small>`;
+  const off=(p.timeZoneName||"").replace("GMT","UTC")||"UTC";
+  return `<section class="card ${cls}"><div class="name">${s.title}</div><div class="time">${t}</div><div class="meta"><span>${p.weekday}, ${p.month} ${p.day}, ${p.year}</span><span>${off==="UTC"?"UTC±0":off}</span><span>${s.z}</span></div></section>`}).join("");
+}
+function pick(c){
+ shown=c.z.map(z=>({z,title:c.z.length>1?`${c.n} · ${label(z)}`:c.n}));
+ msg.textContent=c.z.length>1?`${c.n} spans ${c.z.length} time zones. Showing the main ones.`:"";
+ q.value=c.n;close();render();
+}
+function close(){list.innerHTML="";q.setAttribute("aria-expanded","false");idx=-1}
+function suggest(){
+ const v=q.value.trim().toLowerCase();if(!v){close();return}
+ const m=C.filter(c=>c.k.includes(v)).sort((a,b)=>(b.n.toLowerCase().startsWith(v)-a.n.toLowerCase().startsWith(v))).slice(0,8);
+ idx=m.length?0:-1;
+ list.innerHTML=m.map((c,i)=>`<li role="option" data-c="${c.c}" class="${i===0?"on":""}">${c.n}</li>`).join("");
+ q.setAttribute("aria-expanded",m.length?"true":"false");
+ msg.textContent=m.length?"":`No country found for "${q.value.trim()}". Check the spelling or try its common name.`;
+}
+q.addEventListener("input",suggest);
+q.addEventListener("keydown",e=>{
+ const li=[...list.children];
+ if(e.key==="ArrowDown"||e.key==="ArrowUp"){e.preventDefault();if(!li.length)return;idx=(idx+(e.key==="ArrowDown"?1:-1)+li.length)%li.length;li.forEach((x,i)=>x.classList.toggle("on",i===idx))}
+ else if(e.key==="Enter"&&li[idx]){pick(C.find(c=>c.c===li[idx].dataset.c))}
+ else if(e.key==="Escape")close();
+});
+list.addEventListener("mousedown",e=>{const li=e.target.closest("li");if(li)pick(C.find(c=>c.c===li.dataset.c))});
+document.addEventListener("click",e=>{if(!e.target.closest(".sw"))close()});
+fmt.onclick=()=>{h24=!h24;fmt.textContent=h24?"12h":"24h";try{localStorage.setItem("h24",h24?"1":"0")}catch(e){}render()};
+shown=[{z:local,title:"Your local time · "+label(local)}];
+msg.textContent="Showing your local time. Search a country to see its time.";
+render();setInterval(render,1000);
+</script>
+</body>
+</html>
